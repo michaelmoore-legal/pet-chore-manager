@@ -9,7 +9,7 @@ import { runChaosSimulation } from './utils/simulator';
 import { LiveFeedProvider, useLiveFeed } from './context/LiveFeedContext';
 import './App.css';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 function AppContent() {
   const { addFeedItem } = useLiveFeed();

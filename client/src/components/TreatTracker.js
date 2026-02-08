@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 function TreatTracker({ refreshTrigger = 0 }) {
   const [inventory, setInventory] = useState(null);

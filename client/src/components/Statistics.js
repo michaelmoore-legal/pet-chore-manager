@@ -4,7 +4,7 @@ import { choreOccursOnDate } from '../utils/dateUtils';
 import { generateWeeklyReview, calculateManagerGrade, generateMonthlyReview, getCompletedTasksForMonth } from '../utils/ReviewLogic';
 import TreatTracker from './TreatTracker';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   const [period, setPeriod] = useState('month'); // 'week' or 'month'

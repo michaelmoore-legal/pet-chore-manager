@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { AVATAR_OPTIONS } from '../utils/constants';
 import { getAllSpecies } from '../utils/petChores';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 function TeamMembers({ teamMembers, onUpdate }) {
   const [showForm, setShowForm] = useState(false);

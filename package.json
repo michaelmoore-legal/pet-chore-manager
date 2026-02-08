@@ -2,11 +2,16 @@
   "name": "office-chores-app",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "server": "node server/index.js",
     "client": "cd client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "install-all": "npm install && cd client && npm install"
+    "install-all": "npm install && cd client && npm install",
+    "build": "cd client && npm install && npm run build",
+    "start": "NODE_ENV=production node server/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
