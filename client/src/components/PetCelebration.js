@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-const PetCelebration = ({ employeeOfMonth, period }) => {
-  const [showCelebration, setShowCelebration] = useState(false);
+const PetCelebration = ({ winner, onComplete }) => {
+  const [showCelebration, setShowCelebration] = useState(true);
   const [confettiPieces, setConfettiPieces] = useState([]);
-  const [previousWinner, setPreviousWinner] = useState(null);
 
   // Function to generate sound using Web Audio API
   const playSound = (type) => {
@@ -110,46 +109,46 @@ const PetCelebration = ({ employeeOfMonth, period }) => {
     return pieces;
   };
 
-  // Watch for changes in employeeOfMonth
+  // Watch for changes in winner (month-end celebration)
   useEffect(() => {
-    if (employeeOfMonth && employeeOfMonth.member) {
-      // Check if winner changed
-      if (!previousWinner || previousWinner.id !== employeeOfMonth.member.id) {
-        setPreviousWinner(employeeOfMonth.member);
-        const species = employeeOfMonth.member.species?.toLowerCase() || 'dog';
+    if (winner && winner.member) {
+      const species = winner.species?.toLowerCase() || 'dog';
+      
+      // Trigger celebration if it's a dog or cat
+      if (species === 'dog' || species === 'cat') {
+        setShowCelebration(true);
+        setConfettiPieces(generateConfetti());
         
-        // Trigger celebration if it's a dog or cat
-        if (species === 'dog' || species === 'cat') {
-          setShowCelebration(true);
-          setConfettiPieces(generateConfetti());
-          
-          // Play sound
-          playSound(species);
-          
-          // Also play generic cheer
-          setTimeout(() => playSound('cheer'), 500);
-          
-          // Hide celebration after animation completes
-          setTimeout(() => {
-            setShowCelebration(false);
-            setConfettiPieces([]);
-          }, 5000);
-        }
+        // Play sound
+        playSound(species);
+        
+        // Also play generic cheer
+        setTimeout(() => playSound('cheer'), 500);
+        
+        // Hide celebration after animation completes
+        setTimeout(() => {
+          setShowCelebration(false);
+          setConfettiPieces([]);
+          if (onComplete) {
+            onComplete();
+          }
+        }, 5000);
       }
     }
-  }, [employeeOfMonth, period, previousWinner]);
+  }, [winner, onComplete]);
 
-  if (!showCelebration || !employeeOfMonth) {
+  if (!showCelebration || !winner) {
     return null;
   }
 
-  const species = employeeOfMonth.member.species?.toLowerCase() || 'dog';
+  const species = winner.species?.toLowerCase() || 'dog';
   const emoji = species === 'dog' ? '🐕' : species === 'cat' ? '🐱' : '🎉';
+  const memberName = winner.member?.name || 'Mystery Winner';
   const message = species === 'dog' 
-    ? `🐕 ${employeeOfMonth.member.name.toUpperCase()} WINS! 🐕` 
+    ? `🐕 ${memberName.toUpperCase()} WINS! 🐕` 
     : species === 'cat'
-    ? `🐱 ${employeeOfMonth.member.name.toUpperCase()} REIGNS SUPREME! 🐱`
-    : `🎉 ${employeeOfMonth.member.name.toUpperCase()} WINS! 🎉`;
+    ? `🐱 ${memberName.toUpperCase()} REIGNS SUPREME! 🐱`
+    : `🎉 ${memberName.toUpperCase()} WINS! 🎉`;
 
   return (
     <div className="pet-celebration-overlay">

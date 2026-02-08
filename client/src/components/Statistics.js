@@ -19,6 +19,8 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   const [tempTitle, setTempTitle] = useState('');
   const [inventoryRefresh, setInventoryRefresh] = useState(0);
   const [monthlyReviewsGenerated, setMonthlyReviewsGenerated] = useState(false);
+  const [lastProcessedMonthKey, setLastProcessedMonthKey] = useState(null);
+  const [monthEndCelebration, setMonthEndCelebration] = useState(null);
 
   // State for calculated values
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
@@ -30,13 +32,57 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
     fetchReviews();
   }, []);
 
+  // Detect month transitions and generate reviews for previous month
+  useEffect(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentMonthKey = `${currentYear}-${currentMonth}`;
+
+    if (lastProcessedMonthKey === null) {
+      // First load - just set the current month key
+      setLastProcessedMonthKey(currentMonthKey);
+    }
+  }, []);
+
+  // Check for month transitions periodically
+  useEffect(() => {
+    if (period !== 'month' || lastProcessedMonthKey === null) return;
+
+    const checkMonthTransition = () => {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const currentMonthKey = `${currentYear}-${currentMonth}`;
+
+      if (lastProcessedMonthKey !== currentMonthKey) {
+        // Month has changed - generate reviews for the PREVIOUS month
+        const prevDate = new Date(now);
+        prevDate.setMonth(prevDate.getMonth() - 1);
+        const prevMonth = prevDate.getMonth();
+        const prevYear = prevDate.getFullYear();
+        const prevMonthKey = `${prevYear}-${prevMonth}`;
+
+        generatePreviousMonthReviewsAndCelebration(prevYear, prevMonth, prevMonthKey);
+        setLastProcessedMonthKey(currentMonthKey);
+      }
+    };
+
+    // Check immediately
+    checkMonthTransition();
+
+    // Then check every 60 seconds
+    const interval = setInterval(checkMonthTransition, 60000);
+    return () => clearInterval(interval);
+  }, [period, lastProcessedMonthKey, teamMembers, chores, reviews]);
+
   // Generate monthly reviews after they're fetched
   useEffect(() => {
     if (reviews.length > 0 && !monthlyReviewsGenerated && teamMembers.length > 0) {
       generateMonthlyReviewsIfNeeded();
       setMonthlyReviewsGenerated(true);
     }
-  }, [reviews]);
+  }, [reviews, teamMembers, chores]);
 
   // Refresh inventory when chores change (for treat stealing)
   useEffect(() => {
@@ -88,6 +134,100 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
     if (membersNeedingReview.length > 0) {
       setTimeout(fetchReviews, 500);
     }
+  };
+
+  // Helper function to calculate winner for a specific month
+  const getPreviousMonthWinner = (year, month) => {
+    const monthStart = new Date(year, month, 1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthEnd = new Date(year, month + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+
+    const counts = {};
+    teamMembers.forEach(member => {
+      counts[member.id] = 0;
+    });
+
+    if (!Array.isArray(chores)) return null;
+
+    const currentDate = new Date(monthStart);
+    while (currentDate <= monthEnd) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      chores.forEach(chore => {
+        if (choreOccursOnDate(chore, currentDate) && chore.completedDates?.includes(dateStr)) {
+          if (chore.isGuild && chore.assignedTo && chore.coAssignee) {
+            if (counts[chore.assignedTo] !== undefined) counts[chore.assignedTo] += 0.5;
+            if (counts[chore.coAssignee] !== undefined) counts[chore.coAssignee] += 0.5;
+          } else if (chore.assignedTo && counts[chore.assignedTo] !== undefined) {
+            counts[chore.assignedTo]++;
+          }
+        }
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    let maxCompleted = 0;
+    let winner = null;
+    teamMembers.forEach(member => {
+      if ((counts[member.id] || 0) > maxCompleted) {
+        maxCompleted = counts[member.id] || 0;
+        winner = member;
+      }
+    });
+
+    return maxCompleted > 0 ? { member: winner, count: maxCompleted } : null;
+  };
+
+  // Generate reviews for previous month and trigger celebration
+  const generatePreviousMonthReviewsAndCelebration = async (year, month, prevMonthKey) => {
+    const membersNeedingReview = teamMembers.filter(member => {
+      const hasMonthlyReview = reviews.some(r => 
+        r.memberId === member.id && 
+        r.isMonthlyAudit && 
+        r.monthYear === prevMonthKey
+      );
+      return !hasMonthlyReview;
+    });
+
+    if (membersNeedingReview.length === 0) {
+      // Reviews already exist, just show the celebration
+      const winner = getPreviousMonthWinner(year, month);
+      if (winner) {
+        setMonthEndCelebration({ ...winner, species: winner.member.species });
+      }
+      return;
+    }
+
+    // Generate reviews for all members for the previous month
+    for (const member of membersNeedingReview) {
+      const completedTasks = getCompletedTasksForMonth(chores, member.id, year, month);
+      const review = generateMonthlyReview(member.name, member.species, completedTasks);
+      
+      try {
+        await fetch(`${API_BASE}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            memberId: member.id,
+            rating: 5,
+            comment: review,
+            isMonthlyAudit: true,
+            monthYear: prevMonthKey
+          })
+        });
+      } catch (err) {
+        console.error(`Failed to create monthly review for ${member.name}:`, err);
+      }
+    }
+
+    // Refresh reviews and show celebration
+    setTimeout(() => {
+      fetchReviews();
+      const winner = getPreviousMonthWinner(year, month);
+      if (winner) {
+        setMonthEndCelebration({ ...winner, species: winner.member.species });
+      }
+    }, 500);
   };
 
   // Clear all reviews
@@ -339,8 +479,8 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
 
   return (
     <div className="statistics">
-      {/* Pet Celebration Animation */}
-      <PetCelebration employeeOfMonth={employeeOfPeriod} period={period} />
+      {/* Pet Celebration Animation - Only show on month transition for previous month winner */}
+      {monthEndCelebration && <PetCelebration winner={monthEndCelebration} onComplete={() => setMonthEndCelebration(null)} />}
 
       {/* Calculate total completed tasks for empty state check */}
       {(() => {
