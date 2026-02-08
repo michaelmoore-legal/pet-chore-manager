@@ -15,7 +15,7 @@ function AppContent() {
   const { addFeedItem } = useLiveFeed();
   const [chores, setChores] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
-  const [settings, setSettings] = useState({ calendarName: 'Office Chores Manager' });
+  const [settings, setSettings] = useState({ calendarName: 'Pet Task Manager' });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('calendar');
   const [editingChore, setEditingChore] = useState(null);

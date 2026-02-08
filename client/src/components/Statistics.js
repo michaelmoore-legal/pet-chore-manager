@@ -3,6 +3,7 @@ import { getAvatarColor } from '../utils/constants';
 import { choreOccursOnDate } from '../utils/dateUtils';
 import { generateWeeklyReview, calculateManagerGrade, generateMonthlyReview, getCompletedTasksForMonth } from '../utils/ReviewLogic';
 import TreatTracker from './TreatTracker';
+import PetCelebration from './PetCelebration';
 
 const API_BASE = '/api';
 
@@ -338,6 +339,9 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
 
   return (
     <div className="statistics">
+      {/* Pet Celebration Animation */}
+      <PetCelebration employeeOfMonth={employeeOfPeriod} period={period} />
+
       {/* Calculate total completed tasks for empty state check */}
       {(() => {
         const totalCompleted = Object.values(completedCounts).reduce((sum, count) => sum + count, 0);

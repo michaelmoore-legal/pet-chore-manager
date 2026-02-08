@@ -87,6 +87,24 @@
   background: #106ebe;
 }
 
+/* Create Pet Pad Button */
+.create-pet-pad-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.create-pet-pad-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  transform: translateY(-1px);
+}
+
 /* Clear Button */
 .clear-btn {
   background: #d32f2f;
@@ -2079,5 +2097,135 @@ table tr.guild-chore:hover {
   .perf-stats {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+
+/* Pet Celebration Animations */
+.pet-celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.pet-celebration-character {
+  position: fixed;
+  top: 50%;
+  left: -100px;
+  font-size: 80px;
+  animation: pet-run-across 4s ease-in-out forwards;
+  z-index: 10000;
+}
+
+@keyframes pet-run-across {
+  0% {
+    left: -100px;
+    transform: scaleX(1);
+  }
+  50% {
+    top: 45%;
+  }
+  100% {
+    left: calc(100vw + 100px);
+    transform: scaleX(1);
+  }
+}
+
+.pet-celebration-character.dog {
+  animation: dog-run-across 4s ease-in-out forwards;
+}
+
+@keyframes dog-run-across {
+  0% {
+    left: -100px;
+    transform: scaleX(1);
+  }
+  10% {
+    animation-timing-function: steps(8, end);
+  }
+  50% {
+    top: 45%;
+  }
+  100% {
+    left: calc(100vw + 100px);
+    transform: scaleX(1);
+  }
+}
+
+.pet-celebration-character.cat {
+  animation: cat-run-across 4s ease-in-out forwards;
+}
+
+@keyframes cat-run-across {
+  0% {
+    left: -100px;
+    transform: scaleX(1);
+  }
+  25% {
+    top: 40%;
+  }
+  50% {
+    top: 45%;
+  }
+  75% {
+    top: 40%;
+  }
+  100% {
+    left: calc(100vw + 100px);
+    transform: scaleX(1);
+  }
+}
+
+.pet-celebration-confetti {
+  position: fixed;
+  pointer-events: none;
+  width: 10px;
+  height: 10px;
+  background: #FFD700;
+  animation: confetti-fall 3s ease-in forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-10vh) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+.celebration-text {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  animation: celebration-bounce 2s ease-in-out forwards;
+  z-index: 9998;
+  pointer-events: none;
+  text-align: center;
+}
+
+@keyframes celebration-bounce {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
   }
 }

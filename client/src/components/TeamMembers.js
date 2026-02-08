@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { AVATAR_OPTIONS } from '../utils/constants';
+import { AVATAR_OPTIONS, PET_TEMPLATES } from '../utils/constants';
 import { getAllSpecies } from '../utils/petChores';
 
 const API_BASE = '/api';
@@ -102,6 +102,46 @@ function TeamMembers({ teamMembers, onUpdate }) {
     }
   };
 
+  const generateRandomPet = async () => {
+    try {
+      // Pick a random species
+      const species = Object.keys(PET_TEMPLATES)[Math.floor(Math.random() * Object.keys(PET_TEMPLATES).length)];
+      const template = PET_TEMPLATES[species];
+      
+      // Pick a random name
+      const randomName = template.names[Math.floor(Math.random() * template.names.length)];
+      
+      // Generate a random pet image URL from LoremFlickr
+      const randomLock = Math.floor(Math.random() * 10000);
+      const photoUrl = `https://loremflickr.com/200/200/${template.imageKeyword}?lock=${randomLock}`;
+      
+      // Create new pet object
+      const newPet = {
+        name: randomName,
+        email: `${randomName.toLowerCase()}@pet-corp.com`,
+        avatar: AVATAR_OPTIONS[Math.floor(Math.random() * AVATAR_OPTIONS.length)].id,
+        photo: photoUrl,
+        species: species,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add to backend
+      const response = await fetch(`${API_BASE}/team-members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPet)
+      });
+      
+      if (!response.ok) throw new Error('Failed to create pet');
+      
+      // Refresh team members
+      onUpdate();
+    } catch (err) {
+      console.error('Failed to generate random pet:', err);
+      alert('Failed to create random pet. Please try again.');
+    }
+  };
+
   const getAvatarStyle = (avatarId) => {
     const avatar = AVATAR_OPTIONS.find(a => a.id === avatarId) || AVATAR_OPTIONS[0];
     return { background: avatar.color };
@@ -111,9 +151,14 @@ function TeamMembers({ teamMembers, onUpdate }) {
     <div className="team-members">
       <div className="view-header">
         <h2>Team Members</h2>
-        <button className="add-btn" onClick={() => setShowForm(true)}>
-          + Add Member
-        </button>
+        <div className="header-buttons">
+          <button className="create-pet-pad-btn" onClick={generateRandomPet}>
+            🎲 Create Pet Pad
+          </button>
+          <button className="add-btn" onClick={() => setShowForm(true)}>
+            + Add Member
+          </button>
+        </div>
       </div>
 
       {teamMembers.length === 0 ? (

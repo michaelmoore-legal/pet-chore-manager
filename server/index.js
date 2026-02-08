@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 // Initialize data file if it doesn't exist
 const defaultData = {
   settings: {
-    calendarName: 'Office Chores Manager',
+    calendarName: 'Pet Task Manager',
     leaderboardTitleWeek: 'Employee of the Week',
     leaderboardTitleMonth: 'Employee of the Month'
   },
