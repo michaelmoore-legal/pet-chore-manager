@@ -2250,3 +2250,69 @@ table tr.guild-chore:hover {
     opacity: 0;
   }
 }
+
+.pet-month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+.pet-trophy {
+  font-size: 2.5rem;
+  color: #FFD700;
+  filter: drop-shadow(0 2px 8px #FFD70044);
+}
+.pet-month-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fffbe6 0%, #fffde4 100%);
+  border-radius: 12px;
+  padding: 1.5rem 2.5rem;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.15);
+}
+.pet-month-title {
+  color: #bfa100;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+.pet-month-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #FFD700;
+  margin-bottom: 1rem;
+}
+.pet-month-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bfa100;
+  font-size: 2rem;
+  font-weight: 700;
+  border: 4px solid #FFD700;
+  margin-bottom: 1rem;
+}
+.pet-month-info {
+  text-align: center;
+}
+.pet-month-name {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+}
+.pet-month-stats {
+  display: block;
+  font-size: 1rem;
+  color: #bfa100;
+}

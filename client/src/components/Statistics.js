@@ -640,46 +640,27 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       {/* Employee of the Period Banner */}
       {petOfPeriod && (
         <div className="pet-of-month" key={`winner-${period}-${petOfPeriod.member.id}`}>
-          <div className="eom-trophy">{'\uD83C\uDFC6'}</div>
-          <div className="eom-content">
-            {editingTitle ? (
-              <div className="eom-title-edit">
-                <input
-                  type="text"
-                  value={tempTitle}
-                  onChange={(e) => setTempTitle(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveTitle();
-                    if (e.key === 'Escape') setEditingTitle(false);
-                  }}
-                  autoFocus
-                />
-                <button className="eom-save-btn" onClick={handleSaveTitle}>Save</button>
-                <button className="eom-cancel-btn" onClick={() => setEditingTitle(false)}>Cancel</button>
-              </div>
-            ) : (
-              <h3 className="eom-title-editable" onClick={startEditingTitle} title="Click to edit">
-                {getLeaderboardTitle()}
-              </h3>
-            )}
-            <div className="eom-winner">
+          <div className="pet-month-bar">
+            <span className="pet-trophy">{'\uD83C\uDFC6'}</span>
+            <div className="pet-month-center">
+              <h3 className="pet-month-title">Pet of the Month</h3>
               {petOfPeriod.member.photo ? (
-                <img src={petOfPeriod.member.photo} alt="" className="eom-avatar" />
+                <img src={petOfPeriod.member.photo} alt="" className="pet-month-avatar" />
               ) : (
                 <div
-                  className="eom-avatar-placeholder"
+                  className="pet-month-avatar-placeholder"
                   style={{ backgroundColor: getAvatarColor(petOfPeriod.member.avatar) }}
                 >
                   {petOfPeriod.member.name.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div className="eom-info">
-                <span className="pom-name">{petOfPeriod.member.name}</span>
-                <span className="pom-stats">{petOfPeriod.count} tasks completed!</span>
+              <div className="pet-month-info">
+                <span className="pet-month-name">{petOfPeriod.member.name}</span>
+                <span className="pet-month-stats">{petOfPeriod.count} tasks completed!</span>
               </div>
             </div>
+            <span className="pet-trophy">{'\uD83C\uDFC6'}</span>
           </div>
-          <div className="eom-trophy">{'\uD83C\uDFC6'}</div>
         </div>
       )}
 
