@@ -73,7 +73,9 @@
 }
 
 /* Add Button */
-.add-btn {
+.add-btn,
+.generate-btn,
+.add-review-btn {
   background: #0078d4;
   color: white;
   border: none;
@@ -81,10 +83,19 @@
   border-radius: 4px;
   font-weight: 500;
   transition: background 0.2s;
+  cursor: pointer;
 }
 
-.add-btn:hover {
+.add-btn:hover,
+.generate-btn:hover,
+.add-review-btn:hover {
   background: #106ebe;
+}
+
+.add-btn:active,
+.generate-btn:active,
+.add-review-btn:active {
+  transform: scale(0.98);
 }
 
 /* Create Pet Pad Button */
@@ -166,25 +177,30 @@
   }
 }
 
-/* Clear Calendar Button */
-.clear-btn {
-  background: transparent;
-  color: #ff4757;
-  border: 2px solid #ff4757;
+/* Clear/Delete Button */
+.clear-btn,
+.delete-all-btn,
+.delete-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.2s;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
-.clear-btn:hover {
-  background: #fff1f2;
-  border-color: #ff6b83;
-  color: #ff6b83;
+.clear-btn:hover,
+.delete-all-btn:hover,
+.delete-btn:hover {
+  background: #b71c1c;
 }
 
-.clear-btn:active {
+.clear-btn:active,
+.delete-all-btn:active,
+.delete-btn:active {
   transform: scale(0.98);
 }
 

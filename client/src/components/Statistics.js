@@ -645,7 +645,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
         </div>
       )}
 
-      <TreatTracker key={inventoryRefresh} refreshTrigger={inventoryRefresh} />
+      <TreatTracker refreshTrigger={inventoryRefresh} />
 
       <div className="view-header">
         <h2>Task Distribution</h2>

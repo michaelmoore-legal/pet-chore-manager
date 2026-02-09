@@ -14,15 +14,6 @@ function TreatTracker({ refreshTrigger = 0 }) {
     fetchInventory();
   }, [refreshTrigger]);
 
-  // Also refetch every 2 seconds as a fallback
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('TreatTracker: polling inventory');
-      fetchInventory();
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   const fetchInventory = async () => {
     try {
       // First sync inventory based on actual completed chores
@@ -36,12 +27,19 @@ function TreatTracker({ refreshTrigger = 0 }) {
       console.log('TreatTracker: inventory synced, treats:', syncedData.treats);
       
       // Set the synced inventory directly
-      setInventory(syncedData);
+      // Only update if value actually changed
+      setInventory(prev => {
+        if (prev?.treats === syncedData.treats) return prev;
+        return syncedData;
+      });
       
       // Check if low stock (below 10%)
       const percentageRemaining = (syncedData.treats / syncedData.maxTreats) * 100;
       console.log('TreatTracker: percentage remaining:', percentageRemaining);
-      setLowStockWarning(percentageRemaining <= 10);
+      setLowStockWarning(prev => {
+        const newWarning = percentageRemaining <= 10;
+        return prev === newWarning ? prev : newWarning;
+      });
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch inventory:', err);

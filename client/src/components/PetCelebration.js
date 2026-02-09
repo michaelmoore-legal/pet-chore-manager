@@ -10,13 +10,16 @@ const PetCelebration = ({ winner, onComplete }) => {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
       if (type === 'bark') {
-        // Dog bark - series of short tones with varying pitch
         playBark(audioContext);
       } else if (type === 'meow') {
-        // Cat meow - smooth rising then falling tone
         playMeow(audioContext);
+      } else if (type === 'chirp') {
+        playChirp(audioContext);
+      } else if (type === 'squeak') {
+        playSqueak(audioContext);
+      } else if (type === 'hiss') {
+        playHiss(audioContext);
       } else if (type === 'cheer') {
-        // Victory cheer - rising chord
         playCheer(audioContext);
       }
     } catch (error) {
@@ -95,6 +98,67 @@ const PetCelebration = ({ winner, onComplete }) => {
     });
   };
 
+  const playChirp = (audioContext) => {
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+    
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+    
+    osc.start(now);
+    osc.stop(now + 0.15);
+  };
+
+  const playSqueak = (audioContext) => {
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+    
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    
+    osc.start(now);
+    osc.stop(now + 0.1);
+  };
+
+  const playHiss = (audioContext) => {
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+    
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(150, now);
+    
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(5000, now);
+    
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    
+    osc.start(now);
+    osc.stop(now + 0.3);
+  };
+
   // Generate confetti pieces
   const generateConfetti = () => {
     const pieces = [];
@@ -114,26 +178,35 @@ const PetCelebration = ({ winner, onComplete }) => {
     if (winner && winner.member) {
       const species = winner.species?.toLowerCase() || 'dog';
       
-      // Trigger celebration if it's a dog or cat
-      if (species === 'dog' || species === 'cat') {
-        setShowCelebration(true);
-        setConfettiPieces(generateConfetti());
-        
-        // Play sound
-        playSound(species);
-        
-        // Also play generic cheer
-        setTimeout(() => playSound('cheer'), 500);
-        
-        // Hide celebration after animation completes
-        setTimeout(() => {
-          setShowCelebration(false);
-          setConfettiPieces([]);
-          if (onComplete) {
-            onComplete();
-          }
-        }, 5000);
-      }
+      setShowCelebration(true);
+      setConfettiPieces(generateConfetti());
+      
+      // Play species-specific sound
+      const soundMap = {
+        dog: 'bark',
+        cat: 'meow',
+        parrot: 'chirp',
+        hamster: 'squeak',
+        rabbit: 'squeak',
+        snake: 'hiss',
+        lizard: 'hiss',
+        goldfish: 'chirp'
+      };
+      
+      const sound = soundMap[species] || 'cheer';
+      playSound(sound);
+      
+      // Also play generic cheer after a brief delay
+      setTimeout(() => playSound('cheer'), 500);
+      
+      // Hide celebration after animation completes
+      setTimeout(() => {
+        setShowCelebration(false);
+        setConfettiPieces([]);
+        if (onComplete) {
+          onComplete();
+        }
+      }, 5000);
     }
   }, [winner, onComplete]);
 
@@ -142,13 +215,19 @@ const PetCelebration = ({ winner, onComplete }) => {
   }
 
   const species = winner.species?.toLowerCase() || 'dog';
-  const emoji = species === 'dog' ? '🐕' : species === 'cat' ? '🐱' : '🎉';
+  const emojiMap = {
+    dog: '🐕',
+    cat: '🐱',
+    parrot: '🦜',
+    hamster: '🐹',
+    rabbit: '🐰',
+    snake: '🐍',
+    lizard: '🦎',
+    goldfish: '🐠'
+  };
+  const emoji = emojiMap[species] || '🎉';
   const memberName = winner.member?.name || 'Mystery Winner';
-  const message = species === 'dog' 
-    ? `🐕 ${memberName.toUpperCase()} WINS! 🐕` 
-    : species === 'cat'
-    ? `🐱 ${memberName.toUpperCase()} REIGNS SUPREME! 🐱`
-    : `🎉 ${memberName.toUpperCase()} WINS! 🎉`;
+  const message = `${emoji} ${memberName.toUpperCase()} WINS! ${emoji}`;
 
   return (
     <div className="pet-celebration-overlay">
