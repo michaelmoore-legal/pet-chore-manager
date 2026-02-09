@@ -348,15 +348,11 @@ app.put('/api/inventory', (req, res) => {
 });
 
 app.post('/api/inventory/refill', (req, res) => {
-  const data = readData();
-  if (!data.inventory) {
-       data.inventory = { treats: 20, maxTreats: 20, lastUpdated: new Date().toISOString() };
-  }
-  
-  data.inventory.treats = data.inventory.maxTreats;
-  data.inventory.lastUpdated = new Date().toISOString();
-  writeData(data);
-  res.json({ message: 'Jar refilled!', inventory: data.inventory });
+    const data = readData();
+    // Always set maxTreats and treats to 20
+    data.inventory = { treats: 20, maxTreats: 20, lastUpdated: new Date().toISOString() };
+    writeData(data);
+    res.json({ message: 'Jar refilled!', inventory: data.inventory });
 });
 
 // Serve React app for all non-API routes in production
