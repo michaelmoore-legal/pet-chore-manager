@@ -75,7 +75,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   const [dateRange, setDateRange] = useState({ start: new Date(), end: new Date() });
   const [completedCounts, setCompletedCounts] = useState({});
   const [taskCounts, setTaskCounts] = useState({});
-  const [employeeOfPeriod, setEmployeeOfPeriod] = useState(null);
+  const [petOfPeriod, setPetOfPeriod] = useState(null);
 
   useEffect(() => {
     fetchReviews();
@@ -469,7 +469,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
     const newWinner = maxCompleted > 0 ? { member: winner, count: maxCompleted } : null;
     
     // Only update state if winner actually changed
-    setEmployeeOfPeriod(prev => {
+    setPetOfPeriod(prev => {
       if (!prev && !newWinner) return prev;
       if (prev?.member?.id !== newWinner?.member?.id) return newWinner;
       return prev;
@@ -638,8 +638,8 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       })()}
 
       {/* Employee of the Period Banner */}
-      {employeeOfPeriod && (
-        <div className="employee-of-month" key={`winner-${period}-${employeeOfPeriod.member.id}`}>
+      {petOfPeriod && (
+        <div className="pet-of-month" key={`winner-${period}-${petOfPeriod.member.id}`}>
           <div className="eom-trophy">{'\uD83C\uDFC6'}</div>
           <div className="eom-content">
             {editingTitle ? (
@@ -663,19 +663,19 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
               </h3>
             )}
             <div className="eom-winner">
-              {employeeOfPeriod.member.photo ? (
-                <img src={employeeOfPeriod.member.photo} alt="" className="eom-avatar" />
+              {petOfPeriod.member.photo ? (
+                <img src={petOfPeriod.member.photo} alt="" className="pom-avatar" />
               ) : (
                 <div
                   className="eom-avatar-placeholder"
-                  style={{ backgroundColor: getAvatarColor(employeeOfPeriod.member.avatar) }}
+                  style={{ backgroundColor: getAvatarColor(petOfPeriod.member.avatar) }}
                 >
-                  {employeeOfPeriod.member.name.charAt(0).toUpperCase()}
+                  {petOfPeriod.member.name.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="eom-info">
-                <span className="eom-name">{employeeOfPeriod.member.name}</span>
-                <span className="eom-stats">{employeeOfPeriod.count} tasks completed!</span>
+                <span className="pom-name">{petOfPeriod.member.name}</span>
+                <span className="pom-stats">{petOfPeriod.count} tasks completed!</span>
               </div>
             </div>
           </div>
@@ -719,7 +719,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
               // For zero completed tasks, show a minimal bar, otherwise show proportional width
               const barWidth = completed === 0 ? 2 : Math.max(percentage, 5);
               const color = getAvatarColor(member.avatar);
-              const isWinner = employeeOfPeriod?.member?.id === member.id;
+              const isWinner = petOfPeriod?.member?.id === member.id;
 
               return (
                 <div key={member.id} className={`histogram-row ${isWinner ? 'winner' : ''}`}>
@@ -895,7 +895,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
               return sortedMembers.map((member, rankIndex) => {
                 const memberReviews = getReviewsForMember(member.id);
                 const color = getAvatarColor(member.avatar);
-                const isWinner = employeeOfPeriod?.member?.id === member.id;
+                const isWinner = petOfPeriod?.member?.id === member.id;
                 const gradeData = calculateRelativeGrade(rankIndex, teamMembers.length, completedCounts[member.id] || 0);
 
                 return (
@@ -971,7 +971,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
                               <>
                                 {renderStars(review.rating)}
                                 {review.isMonthlyAudit && (
-                                  <div className="review-audit-badge">📋 Monthly Audit</div>
+                                  <div className="review-audit-badge">📋 Monthly Review</div>
                                 )}
                                 <p className="review-comment">{review.comment}</p>
                                 <div className="review-meta">

@@ -3,12 +3,18 @@ import React, { useState, useEffect } from 'react';
 const PetCelebration = ({ winner, onComplete }) => {
   const [showCelebration, setShowCelebration] = useState(true);
   const [confettiPieces, setConfettiPieces] = useState([]);
+  useEffect(() => {
+    console.log('[PetCelebration] Mounted');
+    return () => {
+      console.log('[PetCelebration] Unmounted');
+    };
+  }, []);
 
   // Function to generate sound using Web Audio API
   const playSound = (type) => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
+      console.log(`[PetCelebration] Playing sound: ${type}`);
       if (type === 'bark') {
         playBark(audioContext);
       } else if (type === 'meow') {
@@ -177,10 +183,9 @@ const PetCelebration = ({ winner, onComplete }) => {
   useEffect(() => {
     if (winner && winner.member) {
       const species = winner.species?.toLowerCase() || 'dog';
-      
+      console.log(`[PetCelebration] Celebration triggered for winner: ${winner.member?.name}, species: ${species}`);
       setShowCelebration(true);
       setConfettiPieces(generateConfetti());
-      
       // Play species-specific sound
       const soundMap = {
         dog: 'bark',
@@ -192,17 +197,15 @@ const PetCelebration = ({ winner, onComplete }) => {
         lizard: 'hiss',
         goldfish: 'chirp'
       };
-      
       const sound = soundMap[species] || 'cheer';
       playSound(sound);
-      
       // Also play generic cheer after a brief delay
       setTimeout(() => playSound('cheer'), 500);
-      
       // Hide celebration after animation completes
       setTimeout(() => {
         setShowCelebration(false);
         setConfettiPieces([]);
+        console.log('[PetCelebration] Celebration overlay hidden');
         if (onComplete) {
           onComplete();
         }
