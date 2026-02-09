@@ -45,8 +45,8 @@ function TreatTracker({ refreshTrigger = 0 }) {
       console.error('Failed to fetch inventory:', err);
       setError(err.message);
       setLoading(false);
-      // Set default inventory on error
-      const defaultInventory = { treats: 100, maxTreats: 100 };
+        // Set default inventory on error
+        const defaultInventory = { treats: 20, maxTreats: 20 };
       setInventory(defaultInventory);
     }
   };

@@ -150,9 +150,18 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
 
     try {
       for (const member of teamMembers) {
-        const completed = getCompletedTasksForMonth(chores, member.id, year, month);
-        const comment = generateMonthlyReview(member.name, member.species, completed);
         const monthYear = `${year}-${String(month+1).padStart(2,'0')}`;
+
+          // Skip if this member already has a review for this month
+          const existingReview = reviews.find(r =>
+            r.memberId === member.id &&
+            r.isMonthlyAudit &&
+            r.monthYear === monthYear
+          );
+          if (existingReview) continue;
+
+          const completed = getCompletedTasksForMonth(chores, member.id, year, month);
+          const comment = generateMonthlyReview(member.name, member.species, completed);
 
         const res = await fetch(`${API_BASE}/reviews`, {
           method: 'POST',
@@ -166,12 +175,19 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       }
 
       await fetchReviews();
+      
+        // Trigger celebration
+        const winner = getPreviousMonthWinner(year, month);
+        if (winner) {
+          setMonthEndCelebration({ ...winner, species: winner.member.species });
+        }
+      
       alert('Monthly reviews generated!');
     } catch (err) {
       console.error('Error generating reviews:', err);
       alert('Error generating reviews. Check console.');
     }
-  }, [teamMembers, chores]);
+    }, [teamMembers, chores, reviews]);
 
   // Generate monthly automated reviews if they don't exist for this month
   const generateMonthlyReviewsIfNeeded = async () => {

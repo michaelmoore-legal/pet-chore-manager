@@ -26,8 +26,8 @@ const defaultData = {
   chores: [],
   reviews: [],
   inventory: {
-    treats: 100,
-    maxTreats: 100,
+      treats: 20,
+      maxTreats: 20,
     lastUpdated: new Date().toISOString()
   }
 };
@@ -300,7 +300,7 @@ app.get('/api/inventory', (req, res) => {
 app.post('/api/inventory/sync', (req, res) => {
   const data = readData();
   if (!data.inventory) {
-    data.inventory = { treats: 100, maxTreats: 100, lastUpdated: new Date().toISOString() };
+      data.inventory = { treats: 0, maxTreats: 20, lastUpdated: new Date().toISOString() };
   }
   
   // Count total completed "Steal treats" chores across all dates
@@ -332,7 +332,7 @@ app.put('/api/inventory', (req, res) => {
     data.inventory.treats = Math.max(0, Math.min(req.body.treats, data.inventory.maxTreats));
   }
   if (req.body.maxTreats !== undefined) {
-    data.inventory.maxTreats = req.body.maxTreats;
+      data.inventory.maxTreats = 20; // Set maxTreats to 20
   }
   
   data.inventory.lastUpdated = new Date().toISOString();
@@ -343,7 +343,7 @@ app.put('/api/inventory', (req, res) => {
 app.post('/api/inventory/refill', (req, res) => {
   const data = readData();
   if (!data.inventory) {
-    data.inventory = { treats: 100, maxTreats: 100, lastUpdated: new Date().toISOString() };
+       data.inventory = { treats: 20, maxTreats: 20, lastUpdated: new Date().toISOString() };
   }
   
   data.inventory.treats = data.inventory.maxTreats;

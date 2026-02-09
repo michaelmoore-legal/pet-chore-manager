@@ -278,10 +278,13 @@
 
 .calendar-day {
   background: white;
-  min-height: 100px;
+    min-height: 100px;
+    max-height: 150px;
   padding: 0.5rem;
   cursor: pointer;
   transition: background 0.2s;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .calendar-day:hover {
@@ -332,13 +335,15 @@
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.65rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
   cursor: pointer;
-  display: flex;
-  align-items: center;
+  display: block;
   gap: 3px;
+  line-height: 1.2;
 }
 
 .chore-pill:hover {
