@@ -85,6 +85,13 @@ export async function runChaosSimulation(
   }
 
   console.log(`✅ Chaos Mode Complete: ${tasksCreated} species-funny tasks generated over ${daysInMonth} days`);
+  if (typeof window !== 'undefined') {
+    const now = new Date();
+    console.log('Dispatching chaosModeComplete event with now:', now);
+    window.dispatchEvent(new CustomEvent('chaosModeComplete', { detail: { now } }));
+  } else {
+    console.warn('window is undefined, cannot dispatch chaosModeComplete event');
+  }
   onSimulationComplete();
 }
 
