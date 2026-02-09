@@ -148,12 +148,6 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   }, [period, lastProcessedMonthKey, teamMembers, chores, reviews]);
 
   // Generate monthly reviews after they're fetched
-  useEffect(() => {
-    if (reviews.length > 0 && !monthlyReviewsGenerated && teamMembers.length > 0) {
-      generateMonthlyReviewsIfNeeded();
-      setMonthlyReviewsGenerated(true);
-    }
-  }, [reviews, teamMembers, chores]);
 
   // Refresh inventory when chores change (for treat stealing)
   useEffect(() => {
@@ -319,6 +313,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       return !hasMonthlyReview;
     });
 
+    // Only generate reviews if none exist for this pet/month
     for (const member of membersNeedingReview) {
       const completedTasks = getCompletedTasksForMonth(chores, member.id, year, month);
       const review = generateMonthlyReview(member.name, member.species, completedTasks);
@@ -344,7 +339,8 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       fetchReviews();
       const winner = getPreviousMonthWinner(year, month);
       if (winner) {
-        setMonthEndCelebration({ ...winner, species: winner.member.species });
+        setMonthEndCelebration({ ...winner, species: winner.member.species, celebrationKey: Date.now() });
+        setTimeout(() => setMonthEndCelebration(null), 5200);
       }
     }, 500);
   };
@@ -616,7 +612,13 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   return (
     <div className="statistics">
       {/* Pet Celebration Animation - Only show on month transition for previous month winner */}
-      {monthEndCelebration && <PetCelebration winner={monthEndCelebration} onComplete={() => setMonthEndCelebration(null)} />}
+      {monthEndCelebration && (
+        <PetCelebration
+          key={monthEndCelebration.celebrationKey || 'default'}
+          winner={monthEndCelebration}
+          onComplete={() => setMonthEndCelebration(null)}
+        />
+      )}
 
       {/* Calculate total completed tasks for empty state check */}
       {(() => {
