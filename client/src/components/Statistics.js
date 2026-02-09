@@ -295,7 +295,21 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
 
   // Generate reviews for previous month and trigger celebration
   const generatePreviousMonthReviewsAndCelebration = async (year, month, prevMonthKey) => {
-    // Only generate one review per pet per month
+    // Remove duplicate reviews for the previous month
+    const uniqueMembers = teamMembers.map(member => member.id);
+    const seen = new Set();
+    reviews.forEach(r => {
+      if (r.isMonthlyAudit && r.monthYear === prevMonthKey && uniqueMembers.includes(r.memberId)) {
+        if (seen.has(r.memberId)) {
+          // Delete duplicate review
+          fetch(`${API_BASE}/reviews/${r.id}`, { method: 'DELETE' });
+        } else {
+          seen.add(r.memberId);
+        }
+      }
+    });
+
+    // Generate reviews for members who don't have one for the previous month
     const membersNeedingReview = teamMembers.filter(member => {
       const hasMonthlyReview = reviews.some(r => 
         r.memberId === member.id && 
@@ -305,7 +319,6 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       return !hasMonthlyReview;
     });
 
-    // Generate reviews for all members for the previous month
     for (const member of membersNeedingReview) {
       const completedTasks = getCompletedTasksForMonth(chores, member.id, year, month);
       const review = generateMonthlyReview(member.name, member.species, completedTasks);

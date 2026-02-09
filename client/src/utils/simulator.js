@@ -80,7 +80,7 @@ export async function runChaosSimulation(
       tasksCreated++;
 
       // 7. Wait 1 second before next task to let UI breathe
-      await sleep(1000);
+      await sleep(500);
     }
   }
 
