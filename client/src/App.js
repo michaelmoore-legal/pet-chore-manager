@@ -336,7 +336,7 @@ function AppContent() {
             className={activeTab === 'team' ? 'active' : ''}
             onClick={() => setActiveTab('team')}
           >
-            Team Members
+            Pets
           </button>
           <button
             className={activeTab === 'stats' ? 'active' : ''}
@@ -367,6 +367,9 @@ function AppContent() {
               >
                 🗑️ Clear Calendar
               </button>
+            </div>
+            <div className="instructions" style={{margin:'16px 0',padding:'12px',background:'#f0f4ff',borderRadius:'8px',fontSize:'1.1em'}}>
+              <strong>Welcome!</strong> To get started, create some pets using the <b>Pets</b> tab. Once you have added pets, click <b>Chaos Mode</b> to generate random chores for your pets.
             </div>
             <LiveFeed />
             <Calendar

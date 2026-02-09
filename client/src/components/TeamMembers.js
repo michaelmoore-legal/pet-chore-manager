@@ -150,20 +150,20 @@ function TeamMembers({ teamMembers, onUpdate }) {
   return (
     <div className="team-members">
       <div className="view-header">
-        <h2>Team Members</h2>
+        <h2>Pets</h2>
         <div className="header-buttons">
           <button className="create-pet-pad-btn" onClick={generateRandomPet}>
-            🎲 Create Pet Pad
+            🐾 Create New Pet
           </button>
           <button className="add-btn" onClick={() => setShowForm(true)}>
-            + Add Member
+            + Add Pet
           </button>
         </div>
       </div>
 
       {teamMembers.length === 0 ? (
         <div className="empty-state">
-          <p>No team members yet. Add team members to assign chores to them.</p>
+          <p>No pets yet. Add pets to assign chores to them.</p>
         </div>
       ) : (
         <div className="member-grid">

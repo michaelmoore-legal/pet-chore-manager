@@ -664,7 +664,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
             )}
             <div className="eom-winner">
               {petOfPeriod.member.photo ? (
-                <img src={petOfPeriod.member.photo} alt="" className="pom-avatar" />
+                <img src={petOfPeriod.member.photo} alt="" className="eom-avatar" />
               ) : (
                 <div
                   className="eom-avatar-placeholder"
