@@ -30,7 +30,8 @@ function TreatTracker({ refreshTrigger = 0 }) {
       // Only update if value actually changed
       setInventory(prev => {
         if (prev?.treats === syncedData.treats) return prev;
-        return syncedData;
+        // Always use maxTreats 20 for jar
+        return { ...syncedData, maxTreats: 20 };
       });
       
       // Check if low stock (below 10%)

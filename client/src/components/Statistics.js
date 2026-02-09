@@ -197,13 +197,6 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       }
 
       await fetchReviews();
-      
-        // Trigger celebration
-        const winner = getPreviousMonthWinner(year, month);
-        if (winner) {
-          setMonthEndCelebration({ ...winner, species: winner.member.species });
-        }
-      
       alert('Monthly reviews generated!');
     } catch (err) {
       console.error('Error generating reviews:', err);
