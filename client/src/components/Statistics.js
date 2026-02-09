@@ -81,6 +81,28 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
     fetchReviews();
   }, []);
 
+  // Listen for Chaos Mode completion to trigger month-end review generation and celebration
+  useEffect(() => {
+    const handler = (e) => {
+      // When Chaos Mode completes, calculate final monthly totals and trigger celebration
+      const now = e?.detail?.now ? new Date(e.detail.now) : new Date();
+      const prevDate = new Date(now);
+      prevDate.setMonth(prevDate.getMonth() - 1);
+      const prevMonth = prevDate.getMonth();
+      const prevYear = prevDate.getFullYear();
+      const prevMonthKey = `${prevYear}-${prevMonth}`;
+
+      // Calculate winner for previous month and trigger celebration
+      const winner = getPreviousMonthWinner(prevYear, prevMonth);
+      if (winner) {
+        setMonthEndCelebration({ ...winner, species: winner.member.species });
+      }
+    };
+
+    window.addEventListener('chaosModeComplete', handler);
+    return () => window.removeEventListener('chaosModeComplete', handler);
+  }, [teamMembers, chores]);
+
   // Detect month transitions and generate reviews for previous month
   useEffect(() => {
     const now = new Date();

@@ -47,7 +47,7 @@ function TreatTracker({ refreshTrigger = 0 }) {
       setLoading(false);
         // Set default inventory on error
         const defaultInventory = { treats: 20, maxTreats: 20 };
-      setInventory(defaultInventory);
+        setInventory(defaultInventory);
     }
   };
 
@@ -59,7 +59,8 @@ function TreatTracker({ refreshTrigger = 0 }) {
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
-      setInventory(data.inventory);
+      // Always use maxTreats 20 for jar
+      setInventory({ ...data.inventory, maxTreats: 20 });
       setLowStockWarning(false);
     } catch (err) {
       console.error('Failed to refill:', err);

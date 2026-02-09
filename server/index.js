@@ -26,8 +26,8 @@ const defaultData = {
   chores: [],
   reviews: [],
   inventory: {
-      treats: 20,
-      maxTreats: 20,
+    treats: 20,
+    maxTreats: 20,
     lastUpdated: new Date().toISOString()
   }
 };
@@ -184,7 +184,7 @@ app.post('/api/chores/:id/complete', (req, res) => {
     console.log(`Chore title: "${choreTitle}", isStealsChore: ${isStealsChore}`);
     
     if (isStealsChore) {
-      if (!data.inventory) data.inventory = { treats: 0, maxTreats: 100, lastUpdated: new Date().toISOString() };
+      if (!data.inventory) data.inventory = { treats: 0, maxTreats: 20, lastUpdated: new Date().toISOString() };
       const treatsBefore = data.inventory.treats;
       data.inventory.treats = Math.max(0, data.inventory.treats - 1);
       data.inventory.lastUpdated = new Date().toISOString();
@@ -213,7 +213,7 @@ app.post('/api/chores/:id/uncomplete', (req, res) => {
   // Restore treats if this is a "Steal treats" type chore
   const choreTitle = data.chores[index].title;
   if (wasCompleted && choreTitle && choreTitle.toLowerCase().includes('steal treat')) {
-    if (!data.inventory) data.inventory = { treats: 0, maxTreats: 100, lastUpdated: new Date().toISOString() };
+    if (!data.inventory) data.inventory = { treats: 0, maxTreats: 20, lastUpdated: new Date().toISOString() };
     const treatsBefore = data.inventory.treats;
     data.inventory.treats = Math.min(data.inventory.maxTreats, data.inventory.treats + 1);
     data.inventory.lastUpdated = new Date().toISOString();
@@ -233,6 +233,13 @@ app.get('/api/reviews', (req, res) => {
 app.post('/api/reviews', (req, res) => {
   const data = readData();
   if (!data.reviews) data.reviews = [];
+  // Prevent duplicate monthly audit reviews for same member/month
+  if (req.body.isMonthlyAudit && req.body.monthYear) {
+    const existing = data.reviews.find(r => r.memberId === req.body.memberId && r.isMonthlyAudit && r.monthYear === req.body.monthYear);
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+  }
   const newReview = {
     id: Date.now().toString(),
     memberId: req.body.memberId,

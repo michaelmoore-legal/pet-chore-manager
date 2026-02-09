@@ -251,6 +251,12 @@ function AppContent() {
         () => {
           setIsSimulating(false);
           alert('🎉 Chaos Mode Complete! Check your species-specific stats!');
+          try {
+            const nowIso = new Date().toISOString();
+            window.dispatchEvent(new CustomEvent('chaosModeComplete', { detail: { now: nowIso } }));
+          } catch (e) {
+            console.error('Failed to dispatch chaosModeComplete event', e);
+          }
         }
       );
     } catch (err) {
