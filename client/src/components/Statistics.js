@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAvatarColor } from '../utils/constants';
 import { choreOccursOnDate } from '../utils/dateUtils';
 import { generateWeeklyReview, calculateManagerGrade, generateMonthlyReview, getCompletedTasksForMonth } from '../utils/ReviewLogic';
@@ -6,6 +6,55 @@ import TreatTracker from './TreatTracker';
 import PetCelebration from './PetCelebration';
 
 const API_BASE = '/api';
+
+/**
+ * Calculate relative grade based on ranking among peers
+ * A = top performer, F = lowest performer
+ */
+const calculateRelativeGrade = (memberIndex, totalMembers, completedCount) => {
+  // If nobody completed anything, everyone gets N/A
+  if (completedCount === 0 && totalMembers > 0 && memberIndex > 0) {
+    return {
+      grade: 'N/A',
+      percentage: 0,
+      color: '#999',
+      description: 'No tasks completed'
+    };
+  }
+
+  // Rank position: 0 = best, totalMembers-1 = worst
+  const percentileRank = memberIndex / (totalMembers || 1);
+
+  let grade, color, description;
+
+  if (percentileRank === 0) {
+    grade = 'A';
+    color = '#2ecc71';
+    description = 'Top Performer';
+  } else if (percentileRank <= 0.2) {
+    grade = 'B';
+    color = '#3498db';
+    description = 'Strong Performance';
+  } else if (percentileRank <= 0.4) {
+    grade = 'C';
+    color = '#f39c12';
+    description = 'Average Performance';
+  } else if (percentileRank <= 0.6) {
+    grade = 'D';
+    color = '#e67e22';
+    description = 'Below Average';
+  } else if (percentileRank < 1) {
+    grade = 'F';
+    color = '#c0392b';
+    description = 'Needs Improvement';
+  } else {
+    grade = 'N/A';
+    color = '#999';
+    description = 'No data';
+  }
+
+  return { grade, percentage: 0, color, description };
+};
 
 function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   const [period, setPeriod] = useState('month'); // 'week' or 'month'
@@ -88,6 +137,41 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
   useEffect(() => {
     setInventoryRefresh(prev => prev + 1);
   }, [chores]);
+
+  // Generate monthly reviews for current month
+  const generateForMonth = useCallback(async (year, month) => {
+    if (!teamMembers || teamMembers.length === 0) {
+      alert('Add team members before generating reviews.');
+      return;
+    }
+
+    const confirmMsg = `Generate month-end reviews for ${teamMembers.length} pets for ${year}-${String(month+1).padStart(2,'0')}?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      for (const member of teamMembers) {
+        const completed = getCompletedTasksForMonth(chores, member.id, year, month);
+        const comment = generateMonthlyReview(member.name, member.species, completed);
+        const monthYear = `${year}-${String(month+1).padStart(2,'0')}`;
+
+        const res = await fetch(`${API_BASE}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: member.id, comment, isMonthlyAudit: true, monthYear })
+        });
+
+        if (!res.ok) {
+          console.error('Failed to create review for', member.name, await res.text());
+        }
+      }
+
+      await fetchReviews();
+      alert('Monthly reviews generated!');
+    } catch (err) {
+      console.error('Error generating reviews:', err);
+      alert('Error generating reviews. Check console.');
+    }
+  }, [teamMembers, chores]);
 
   // Generate monthly automated reviews if they don't exist for this month
   const generateMonthlyReviewsIfNeeded = async () => {
@@ -296,7 +380,12 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       });
       currentDateCompleted.setDate(currentDateCompleted.getDate() + 1);
     }
-    setCompletedCounts(newCompletedCounts);
+    
+    // Only update state if values actually changed
+    setCompletedCounts(prev => {
+      const changed = Object.keys(newCompletedCounts).some(key => prev[key] !== newCompletedCounts[key]);
+      return changed ? newCompletedCounts : prev;
+    });
 
     // Calculate task counts
     const newTaskCounts = {};
@@ -326,7 +415,12 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       });
       currentDateTasks.setDate(currentDateTasks.getDate() + 1);
     }
-    setTaskCounts(newTaskCounts);
+    
+    // Only update state if values actually changed
+    setTaskCounts(prev => {
+      const changed = Object.keys(newTaskCounts).some(key => prev[key] !== newTaskCounts[key]);
+      return changed ? newTaskCounts : prev;
+    });
 
     // Calculate employee of period
     let maxCompleted = 0;
@@ -340,7 +434,14 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       }
     });
 
-    setEmployeeOfPeriod(maxCompleted > 0 ? { member: winner, count: maxCompleted } : null);
+    const newWinner = maxCompleted > 0 ? { member: winner, count: maxCompleted } : null;
+    
+    // Only update state if winner actually changed
+    setEmployeeOfPeriod(prev => {
+      if (!prev && !newWinner) return prev;
+      if (prev?.member?.id !== newWinner?.member?.id) return newWinner;
+      return prev;
+    });
 
   }, [period, chores, teamMembers]);
 
@@ -722,11 +823,21 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
               + Add Review
             </button>
             <button
-              className="clear-btn"
+              className="generate-btn"
+              onClick={() => {
+                const now = new Date();
+                generateForMonth(now.getFullYear(), now.getMonth());
+              }}
+              title="Generate humorous month-end reviews for all pets"
+            >
+              📅 Create Monthly Reviews
+            </button>
+            <button
+              className="delete-all-btn"
               onClick={handleClearAllReviews}
               title="Delete all reviews for all animals"
             >
-              🗑️ Clear All Reviews
+              🗑️ Delete All Reviews
             </button>
           </div>
         </div>
@@ -737,116 +848,123 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
           </div>
         ) : (
           <div className="reviews-grid">
-            {teamMembers.map(member => {
-              const memberReviews = getReviewsForMember(member.id);
-              const color = getAvatarColor(member.avatar);
-              const isWinner = employeeOfPeriod?.member?.id === member.id;
-              const gradeData = calculateManagerGrade(completedCounts[member.id] || 0, taskCounts[member.id] || 0);
+            {useMemo(() => {
+              // Sort members by completed count (descending) for relative grading
+              const sortedMembers = [...teamMembers].sort((a, b) => 
+                (completedCounts[b.id] || 0) - (completedCounts[a.id] || 0)
+              );
 
-              return (
-                <div key={member.id} className="review-card">
-                  <div className="review-card-header" style={{ borderLeftColor: color }}>
-                    {isWinner && <span className="card-trophy">{'\uD83C\uDFC6'}</span>}
-                    {member.photo ? (
-                      <img src={member.photo} alt="" className="review-avatar" />
-                    ) : (
-                      <div className="review-avatar-placeholder" style={{ backgroundColor: color }}>
-                        {member.name.charAt(0).toUpperCase()}
+              return sortedMembers.map((member, rankIndex) => {
+                const memberReviews = getReviewsForMember(member.id);
+                const color = getAvatarColor(member.avatar);
+                const isWinner = employeeOfPeriod?.member?.id === member.id;
+                const gradeData = calculateRelativeGrade(rankIndex, teamMembers.length, completedCounts[member.id] || 0);
+
+                return (
+                  <div key={member.id} className="review-card">
+                    <div className="review-card-header" style={{ borderLeftColor: color }}>
+                      {isWinner && <span className="card-trophy">{'\uD83C\uDFC6'}</span>}
+                      {member.photo ? (
+                        <img src={member.photo} alt="" className="review-avatar" />
+                      ) : (
+                        <div className="review-avatar-placeholder" style={{ backgroundColor: color }}>
+                          {member.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="review-member-info">
+                        <h4>{member.name}</h4>
+                        <span className="review-stats">
+                          {completedCounts[member.id] || 0} tasks completed this {period}
+                        </span>
                       </div>
-                    )}
-                    <div className="review-member-info">
-                      <h4>{member.name}</h4>
-                      <span className="review-stats">
-                        {completedCounts[member.id] || 0} tasks completed this {period}
-                      </span>
+                      <div className="review-card-grade" style={{ backgroundColor: gradeData.color }}>
+                        <div className="card-grade-letter">{gradeData.grade}</div>
+                      </div>
+                      <button
+                        className="add-review-btn"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setShowReviewForm(true);
+                        }}
+                      >
+                        + Review
+                      </button>
                     </div>
-                    <div className="review-card-grade" style={{ backgroundColor: gradeData.color }}>
-                      <div className="card-grade-letter">{gradeData.grade}</div>
-                    </div>
-                    <button
-                      className="add-review-btn"
-                      onClick={() => {
-                        setSelectedMember(member);
-                        setShowReviewForm(true);
-                      }}
-                    >
-                      + Review
-                    </button>
-                  </div>
 
-                  {memberReviews.length === 0 ? (
-                    <p className="no-reviews">No reviews yet</p>
-                  ) : (
-                    <div className="review-list">
-                      {memberReviews.map(review => (
-                        <div key={review.id} className="review-item">
-                          {editingReviewId === review.id ? (
-                            <div className="review-edit-form">
-                              <div className="edit-form-group">
-                                <label>Rating</label>
-                                {renderStars(editingReviewData.rating, true, (r) => 
-                                  setEditingReviewData(f => ({ ...f, rating: r }))
-                                )}
-                              </div>
-                              <div className="edit-form-group">
-                                <label>Comment</label>
-                                <textarea
-                                  value={editingReviewData.comment}
-                                  onChange={(e) => setEditingReviewData(f => ({ ...f, comment: e.target.value }))}
-                                  rows="3"
-                                  required
-                                />
-                              </div>
-                              <div className="review-edit-actions">
-                                <button
-                                  className="save-edit-btn"
-                                  onClick={() => handleUpdateReview(review.id)}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  className="cancel-edit-btn"
-                                  onClick={cancelEditingReview}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              {renderStars(review.rating)}
-                              {review.isMonthlyAudit && (
-                                <div className="review-audit-badge">📋 Monthly Audit</div>
-                              )}
-                              <p className="review-comment">{review.comment}</p>
-                              <div className="review-meta">
-                                <span>{new Date(review.createdAt).toLocaleDateString()}</span>
-                                <div className="review-actions">
-                                  {!review.isMonthlyAudit && (
-                                    <button
-                                      className="edit-review-btn"
-                                      onClick={() => startEditingReview(review)}
-                                    >
-                                      Edit
-                                    </button>
+                    {memberReviews.length === 0 ? (
+                      <p className="no-reviews">No reviews yet</p>
+                    ) : (
+                      <div className="review-list">
+                        {memberReviews.map(review => (
+                          <div key={review.id} className="review-item">
+                            {editingReviewId === review.id ? (
+                              <div className="review-edit-form">
+                                <div className="edit-form-group">
+                                  <label>Rating</label>
+                                  {renderStars(editingReviewData.rating, true, (r) => 
+                                    setEditingReviewData(f => ({ ...f, rating: r }))
                                   )}
+                                </div>
+                                <div className="edit-form-group">
+                                  <label>Comment</label>
+                                  <textarea
+                                    value={editingReviewData.comment}
+                                    onChange={(e) => setEditingReviewData(f => ({ ...f, comment: e.target.value }))}
+                                    rows="3"
+                                    required
+                                  />
+                                </div>
+                                <div className="review-edit-actions">
                                   <button
-                                    className="delete-review-btn"
-                                    onClick={() => handleDeleteReview(review.id)}
+                                    className="save-edit-btn"
+                                    onClick={() => handleUpdateReview(review.id)}
                                   >
-                                    Delete
+                                    Save
+                                  </button>
+                                  <button
+                                    className="cancel-edit-btn"
+                                    onClick={cancelEditingReview}
+                                  >
+                                    Cancel
                                   </button>
                                 </div>
                               </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                            ) : (
+                              <>
+                                {renderStars(review.rating)}
+                                {review.isMonthlyAudit && (
+                                  <div className="review-audit-badge">📋 Monthly Audit</div>
+                                )}
+                                <p className="review-comment">{review.comment}</p>
+                                <div className="review-meta">
+                                  <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                                  <div className="review-actions">
+                                    {!review.isMonthlyAudit && (
+                                      <button
+                                        className="edit-review-btn"
+                                        onClick={() => startEditingReview(review)}
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
+                                    <button
+                                      className="delete-review-btn"
+                                      onClick={() => handleDeleteReview(review.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            }, [teamMembers, completedCounts, editingReviewId, reviews])}
           </div>
         )}
       </div>

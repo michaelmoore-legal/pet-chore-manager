@@ -5,7 +5,6 @@ import ChoreList from './components/ChoreList';
 import TeamMembers from './components/TeamMembers';
 import Statistics from './components/Statistics';
 import LiveFeed from './components/LiveFeed';
-import Reviews from './components/Reviews';
 import { runChaosSimulation } from './utils/simulator';
 import { LiveFeedProvider, useLiveFeed } from './context/LiveFeedContext';
 import './App.css';
@@ -339,12 +338,6 @@ function AppContent() {
           >
             Statistics
           </button>
-          <button
-            className={activeTab === 'reviews' ? 'active' : ''}
-            onClick={() => setActiveTab('reviews')}
-          >
-            Reviews
-          </button>
         </nav>
       </header>
 
@@ -410,10 +403,6 @@ function AppContent() {
             settings={settings}
             onUpdateSettings={handleUpdateSettings}
           />
-        )}
-
-        {activeTab === 'reviews' && (
-          <Reviews teamMembers={teamMembers} chores={chores} />
         )}
       </main>
 
