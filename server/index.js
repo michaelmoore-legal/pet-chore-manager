@@ -363,5 +363,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(PORT, () => {
+  // Reset inventory and calendar on server start
+  const data = readData();
+  data.inventory = { treats: 20, maxTreats: 20, lastUpdated: new Date().toISOString() };
+  data.chores = [];
+  writeData(data);
+  console.log('Inventory and calendar reset to clean slate.');
   console.log(`Server running on http://localhost:${PORT}`);
 });
