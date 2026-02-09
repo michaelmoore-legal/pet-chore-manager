@@ -95,7 +95,8 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       // Calculate winner for previous month and trigger celebration
       const winner = getPreviousMonthWinner(prevYear, prevMonth);
       if (winner) {
-        setMonthEndCelebration({ ...winner, species: winner.member.species });
+        console.log('Triggering celebration for winner:', winner.member.name);
+        setMonthEndCelebration({ ...winner, species: winner.member.species, celebrationKey: Date.now() });
       }
     };
 
