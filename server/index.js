@@ -235,10 +235,8 @@ app.post('/api/reviews', (req, res) => {
   if (!data.reviews) data.reviews = [];
   // Prevent duplicate monthly audit reviews for same member/month
   if (req.body.isMonthlyAudit && req.body.monthYear) {
-    const existing = data.reviews.find(r => r.memberId === req.body.memberId && r.isMonthlyAudit && r.monthYear === req.body.monthYear);
-    if (existing) {
-      return res.status(200).json(existing);
-    }
+    // Remove any existing monthly audit review for this member/month before adding new one
+    data.reviews = data.reviews.filter(r => !(r.memberId === req.body.memberId && r.isMonthlyAudit && r.monthYear === req.body.monthYear));
   }
   const newReview = {
     id: Date.now().toString(),

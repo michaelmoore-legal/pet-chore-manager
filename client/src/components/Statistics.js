@@ -295,6 +295,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
 
   // Generate reviews for previous month and trigger celebration
   const generatePreviousMonthReviewsAndCelebration = async (year, month, prevMonthKey) => {
+    // Only generate one review per pet per month
     const membersNeedingReview = teamMembers.filter(member => {
       const hasMonthlyReview = reviews.some(r => 
         r.memberId === member.id && 
@@ -304,20 +305,10 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       return !hasMonthlyReview;
     });
 
-    if (membersNeedingReview.length === 0) {
-      // Reviews already exist, just show the celebration
-      const winner = getPreviousMonthWinner(year, month);
-      if (winner) {
-        setMonthEndCelebration({ ...winner, species: winner.member.species });
-      }
-      return;
-    }
-
     // Generate reviews for all members for the previous month
     for (const member of membersNeedingReview) {
       const completedTasks = getCompletedTasksForMonth(chores, member.id, year, month);
       const review = generateMonthlyReview(member.name, member.species, completedTasks);
-      
       try {
         await fetch(`${API_BASE}/reviews`, {
           method: 'POST',
@@ -335,7 +326,7 @@ function Statistics({ chores, teamMembers, settings, onUpdateSettings }) {
       }
     }
 
-    // Refresh reviews and show celebration
+    // Always trigger celebration after Chaos Mode completes
     setTimeout(() => {
       fetchReviews();
       const winner = getPreviousMonthWinner(year, month);
